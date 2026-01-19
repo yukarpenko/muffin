@@ -39,7 +39,7 @@ do
 if [ $SAMPLER == "on" ]; then
 PREFIX_SAMPL=data/${PREFIX}/sampler.output/${iloop}
 PREFIX_SMASH=data/${PREFIX}/smash.output/${iloop}
-time ../smash-hadron-sampler/build/sampler events 1 --parameters data/${PREFIX}/sampler_config --surface data/${PREFIX}/hydro.output/f.all.dat --output ${PREFIX_SAMPL}
+time ../smash-hadron-sampler/build/sampler --config data/${PREFIX}/sampler_config --surface data/${PREFIX}/hydro.output/f.all.dat --output ${PREFIX_SAMPL}
 echo "sampler execution time above"
 # ---- renaming the output file
 cd ${PREFIX_SAMPL}
