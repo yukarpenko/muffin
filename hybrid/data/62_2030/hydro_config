@@ -52,6 +52,6 @@ xi_q       30.0
 xi_h       0.8
 alpha     0.75
 beta      0.1
-xsectparam 14
+xsectparam 1
 tau_unification 0.2
 unification 1
