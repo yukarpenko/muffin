@@ -11,7 +11,7 @@ Writes:
   user/data/{scenario_name}/sampler_config
   user/data/{scenario_name}/smash_config
   user/data/{scenario_name}/run_settings   <- stages, loops for run_chain.sh
-  batch_run_{timestamp}.sh                   <- ready to feed to PBS/SLURM or bash
+  user/batch_run_{timestamp}.sh                   <- ready to feed to PBS/SLURM or bash
 """
 
 import os, sys, shutil
@@ -35,7 +35,7 @@ def find_framework_root():
 
 FRAMEWORK_ROOT = find_framework_root()
 USER_DIR     = FRAMEWORK_ROOT / "user"
-BASE_CONFIGS   = USER_DIR / "base_configs"
+BASE_CONFIGS   = FRAMEWORK_ROOT / "base_configs"
 DATA_DIR       = USER_DIR / "data"
 
 
