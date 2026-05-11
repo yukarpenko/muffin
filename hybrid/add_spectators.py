@@ -72,7 +72,7 @@ def read_sampler_output_and_write_full_output(spectator_events):
    if(len(line.split()) == 12):
     buff.append(line)
     max_id = max(max_id, int(line.split()[10]))
-   if(line.startswith('# event') and line.split()[3] == 'end'): # catches the # event X end ... lines
+   if(line.startswith('# event') and line.split()[5] == 'end'): # catches the # event X end ... lines
     print(line)
     print('int. event count: ', event_count, '  mult ', len(buff))
     print('max_id: ', max_id)
