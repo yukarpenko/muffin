@@ -1,0 +1,47 @@
+# scenarios/bestfit_2030_oct.yaml
+
+defaults:
+  hydro_base: AuAu_62GeV_base     # relative to base_configs/hydro/
+  sampler_base: sampler_config
+  smash_base: smash_config.yaml
+  stages: [hydro, sampler, smash]
+  loops: 2
+
+scenarios:
+  - name: 62_2030_xih08_alpha075_beta01_etaparam4
+    hydro_base: AuAu_62GeV_base   # can override per scenario
+    hydro:
+      snn:              62.4
+      b_min:            6.48
+      b_max:            7.95
+      tauMax:           25.0
+      frictionModel:    4
+      xi_h:             0.8
+      alpha:            0.75
+      beta:             0.1
+      etaS:             0.0
+      etaSparam:        4
+      number_of_events: 4000
+    sampler:
+      Nevents: 4000
+    smash:
+      Nevents: 800
+    stages: [hydro]       # only run hydro; sampler+smash can be added later
+
+  - name: 7_2030_alpha08_beta01_etaparam4
+    hydro_base: AuAu_7GeV_base
+    hydro:
+      snn:              7.7
+      b_min:            6.48
+      b_max:            7.95
+      tauMax:           25.0
+      frictionModel:    4
+      alpha:            0.8
+      beta:             0.1
+      etaS:             0.0
+      etaSparam:        4
+      number_of_events: 12000
+    sampler:
+      Nevents: 12000
+    smash:
+      Nevents: 800
