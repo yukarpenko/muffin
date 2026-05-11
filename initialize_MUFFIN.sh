@@ -3,11 +3,8 @@
 BASEDIR=`pwd`
 echo "installation directory is $BASEDIR"
 
-# initialize hybrid folder structure (optional)
-cd hybrid/
-mkdir -p scripts
-mkdir -p hydrologs
-cd ../
+echo "FRAMEWORK_ROOT=${BASEDIR}" > "${BASEDIR}/framework.env"
+echo "Wrote framework.env with FRAMEWORK_ROOT=${BASEDIR}"
 
 # get vHLLE
 git clone https://github.com/cwerthmann/vhlle.git
@@ -23,9 +20,8 @@ cd vhlle_params
 git checkout muffin
 cd ..
 #mv vhlle_params/eos hybrid/
-cd hybrid
+cd user
 ln -s ../vhlle_params/eos eos
-ln -s ../vhlle_params/ic ic
 ln -s ../vhlle_params/tables tables
 cd ..
 
