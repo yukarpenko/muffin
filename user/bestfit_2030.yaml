@@ -21,12 +21,12 @@ scenarios:
       beta:             0.1
       etaS:             0.0
       etaSparam:        4
-      number_of_events: 4000
+      nevents:          1000
     sampler:
-      Nevents: 4000
+      number_of_events: 4000
     smash:
-      Nevents: 800
-    stages: [hydro]       # only run hydro; sampler+smash can be added later
+      Nevents: 4000
+    stages: [hydro, sampler, smash]       # alter the stages here
 
   - name: 7_2030_alpha08_beta01_etaparam4
     hydro_base: AuAu_7GeV_base
@@ -40,8 +40,8 @@ scenarios:
       beta:             0.1
       etaS:             0.0
       etaSparam:        4
-      number_of_events: 12000
+      nevents:          1000
     sampler:
-      Nevents: 12000
+      number_of_events: 10000
     smash:
-      Nevents: 800
+      Nevents: 10000
