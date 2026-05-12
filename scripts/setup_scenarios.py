@@ -37,6 +37,7 @@ FRAMEWORK_ROOT = find_framework_root()
 USER_DIR     = FRAMEWORK_ROOT / "user"
 BASE_CONFIGS   = FRAMEWORK_ROOT / "base_configs"
 DATA_DIR       = USER_DIR / "data"
+RUN_CHAIN      = FRAMEWORK_ROOT / "scripts" / "run_chain.sh"
 
 
 def patch_config(template_path: Path, overrides: dict, output_path: Path):
@@ -67,6 +68,48 @@ def patch_config(template_path: Path, overrides: dict, output_path: Path):
               f"in {template_path.name}: {sorted(unmatched)}", file=sys.stderr)
 
 
+def write_job_script(scenario_dir: Path, name: str, cluster: dict) -> str:
+    """
+    Write a self-contained job.sh into scenario_dir.
+    Returns the submission command (qsub/sbatch) for the batch file.
+    """
+    scheduler = cluster.get("scheduler", "pbs").lower()
+    job_name  = name.replace("/", "_")   # schedulers dislike slashes in job names
+    job_path  = scenario_dir / "job.sh"
+
+    if scheduler == "slurm":
+        directives = (
+            f"#SBATCH --job-name={job_name}\n"
+            f"#SBATCH --ntasks=1\n"
+            f"#SBATCH --cpus-per-task={cluster.get('ncpus', 1)}\n"
+            f"#SBATCH --mem={cluster.get('mem', '12gb')}\n"
+            f"#SBATCH --time={cluster.get('walltime', '23:59:00')}\n"
+        )
+        submit_cmd = f"sbatch {job_path}\n"
+    else:  # PBS default
+        select = f"select=1:ncpus={cluster.get('ncpus', 1)}:mem={cluster.get('mem', '12gb')}"
+        if cluster.get("os"):
+            select += f":os={cluster['os']}"
+        directives = (
+            f"#PBS -l {select}\n"
+            f"#PBS -l walltime={cluster.get('walltime', '23:59:00')}\n"
+            f"#PBS -N {job_name}\n"
+        )
+        submit_cmd = f"qsub {job_path}\n"
+
+    job_path.write_text(
+        "#!/bin/bash\n"
+        f"{directives}"
+        "\n"
+        f"export FRAMEWORK_ROOT='{FRAMEWORK_ROOT}'\n"
+        f"export PREFIX='{name}'\n"
+        "\n"
+        f"bash '{RUN_CHAIN}'\n"
+    )
+    job_path.chmod(0o755)
+    return submit_cmd
+
+
 def setup_scenario(name: str, cfg: dict, defaults: dict, timestamp: str):
     scenario_dir = DATA_DIR / name
     scenario_dir.mkdir(parents=True, exist_ok=True)
@@ -86,7 +129,6 @@ def setup_scenario(name: str, cfg: dict, defaults: dict, timestamp: str):
                  cfg.get("smash",   {}),
                  scenario_dir / "smash_config")
 
-    # Write a small settings file consumed by run_chain.sh
     stages = cfg.get("stages", defaults.get("stages", ["hydro", "sampler", "smash"]))
     loops  = cfg.get("loops",  defaults.get("loops",  2))
     settings = (
@@ -95,7 +137,14 @@ def setup_scenario(name: str, cfg: dict, defaults: dict, timestamp: str):
     )
     (scenario_dir / "run_settings").write_text(settings)
 
-    return f"PREFIX={name} bash {FRAMEWORK_ROOT}/scripts/run_chain.sh\n"
+    # if there is a cluster config, generate per-scenario job.sh placed in data/${SCENARIO}
+    # and a different batch_run_${TIMESTAMP}.sh which would submit the jobs
+    cluster = {**defaults.get("cluster", {}), **cfg.get("cluster", {})}
+    if cluster:
+        return write_job_script(scenario_dir, name, cluster)
+    else:
+        # No cluster config present: fall back to the original interactive line
+        return f"PREFIX={name} bash {RUN_CHAIN}\n"
 
 
 def main(scenario_file: str):

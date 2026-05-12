@@ -1,0 +1,53 @@
+# scenarios/bestfit_2030_oct.yaml
+
+defaults:
+  hydro_base: AuAu_62GeV_base     # relative to base_configs/hydro/
+  sampler_base: sampler_config
+  smash_base: smash_config.yaml
+  stages: [hydro, sampler, smash]
+  loops: 2
+  cluster:
+    scheduler: pbs           # pbs | slurm
+    ncpus: 1
+    mem: 12gb
+    walltime: "23:59:00"
+    os: debian12
+
+scenarios:
+  - name: 62_2030_qsub
+    hydro_base: AuAu_62GeV_base   # can override per scenario
+    hydro:
+      snn:              62.4
+      b_min:            6.48
+      b_max:            7.95
+      tauMax:           25.0
+      frictionModel:    4
+      xi_h:             0.8
+      alpha:            0.75
+      beta:             0.1
+      etaS:             0.0
+      etaSparam:        4
+      nevents:          1000
+    sampler:
+      number_of_events: 4000
+    smash:
+      Nevents: 4000
+    stages: [hydro, sampler, smash]       # alter the stages here
+
+  - name: 7_2030_qsub
+    hydro_base: AuAu_7GeV_base
+    hydro:
+      snn:              7.7
+      b_min:            6.48
+      b_max:            7.95
+      tauMax:           25.0
+      frictionModel:    4
+      alpha:            0.8
+      beta:             0.1
+      etaS:             0.0
+      etaSparam:        4
+      nevents:          1000
+    sampler:
+      number_of_events: 10000
+    smash:
+      Nevents: 10000
