@@ -5,7 +5,8 @@ defaults:
   sampler_base: sampler_config
   smash_base: smash_config.yaml
   stages: [hydro, sampler, smash]
-  loops: 2
+  finalstate_loops:    2  # run 2 sequential batches
+  finalstate_parallel: 1  # no parallel execution of sampler+smash in single-core job
   cluster:
     scheduler: pbs           # pbs | slurm
     ncpus: 1

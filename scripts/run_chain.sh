@@ -34,7 +34,8 @@ LOG_DIR="${SCENARIO_DIR}/logs"
 
 # ── Load per-scenario run settings (stages, loops) ────────────────────────────
 STAGES="hydro sampler smash"   # default
-LOOPS=2                        # default
+FINALSTATE_LOOPS=1             # default: sequential iterations  (was LOOPS)
+FINALSTATE_PARALLEL=2          # default: parallel tasks per iteration
 if [ -f "${SCENARIO_DIR}/run_settings" ]; then
   source "${SCENARIO_DIR}/run_settings"
 fi
@@ -43,8 +44,9 @@ fi
 stage_on() { [[ " ${STAGES} " == *" $1 "* ]]; }
 
 echo "=== run_chain.sh: PREFIX=${PREFIX} ==="
-echo "    STAGES: ${STAGES}"
-echo "    LOOPS:  ${LOOPS}"
+echo "    STAGES:              ${STAGES}"
+echo "    FINALSTATE_LOOPS:    ${FINALSTATE_LOOPS}"
+echo "    FINALSTATE_PARALLEL: ${FINALSTATE_PARALLEL}"
 
 # ── HYDRO ─────────────────────────────────────────────────────────────────────
 if stage_on hydro; then
@@ -63,36 +65,42 @@ if stage_on hydro; then
   echo "[$(date)] vHLLE done."
 fi
 
-# ── SAMPLER + SMASH (parallelised over loops) ─────────────────────────────────
-for iloop in $(seq 1 "${LOOPS}"); do
-(
-  SAMPLER_OUT="${SCENARIO_DIR}/sampler.output/${iloop}"
-  SMASH_OUT="${SCENARIO_DIR}/smash.output/${iloop}"
-  mkdir -p "${SAMPLER_OUT}" "${SMASH_OUT}"
+# ── SAMPLER + SMASH (FINALSTATE_LOOPS sequential, FINALSTATE_PARALLEL parallel each) ──
+for iseq in $(seq 1 "${FINALSTATE_LOOPS}"); do
+  echo "[$(date)] Sequential iteration ${iseq}/${FINALSTATE_LOOPS}, launching ${FINALSTATE_PARALLEL} parallel tasks..."
+  for ipar in $(seq 1 "${FINALSTATE_PARALLEL}"); do
+  (
+    iloop=$(( (iseq - 1) * FINALSTATE_PARALLEL + ipar ))
+    SAMPLER_OUT="${SCENARIO_DIR}/sampler.output/${iloop}"
+    SMASH_OUT="${SCENARIO_DIR}/smash.output/${iloop}"
+    mkdir -p "${SAMPLER_OUT}" "${SMASH_OUT}"
 
-  if stage_on sampler; then
-    echo "[$(date)] Starting sampler (loop ${iloop})..."
-    time "${SAMPLER}" --config "${SCENARIO_DIR}/sampler_config" \
-      --surface    "${SCENARIO_DIR}/hydro.output/f.all.dat" \
-      --output     "${SAMPLER_OUT}" \
-      > "${LOG_DIR}/sampler_${iloop}.log" 2>&1
-    python3 "${FRAMEWORK_ROOT}/scripts/add_spectators.py" \
-      --sampled_particle_list "${SAMPLER_OUT}/particle_lists.oscar" \
-      --spectator_list        "${SCENARIO_DIR}/hydro.output/spectators.dat" \
-      --output                "${SAMPLER_OUT}/particle_lists_0" \
-      >> "${LOG_DIR}/sampler_${iloop}.log" 2>&1
-  fi
+    if stage_on sampler; then
+      echo "[$(date)] Starting sampler (loop ${iloop})..."
+      time "${SAMPLER}" --config "${SCENARIO_DIR}/sampler_config" \
+        --surface "${SCENARIO_DIR}/hydro.output/f.all.dat" \
+        --output  "${SAMPLER_OUT}" \
+        > "${LOG_DIR}/sampler_${iloop}.log" 2>&1
+      python3 "${FRAMEWORK_ROOT}/scripts/add_spectators.py" \
+        --sampled_particle_list "${SAMPLER_OUT}/particle_lists.oscar" \
+        --spectator_list        "${SCENARIO_DIR}/hydro.output/spectators.dat" \
+        --output                "${SAMPLER_OUT}/particle_lists_0" \
+        >> "${LOG_DIR}/sampler_${iloop}.log" 2>&1
+    fi
 
-  if stage_on smash; then
-    echo "[$(date)] Starting SMASH (loop ${iloop})..."
-    time "${SMASH_BIN}" \
-      -i "${SCENARIO_DIR}/smash_config" \
-      -c "Modi: { List: { File_Directory: '${SAMPLER_OUT}/' } }" \
-      -o "${SMASH_OUT}/" -f \
-      > "${LOG_DIR}/smash_${iloop}.log" 2>&1
-    echo "[$(date)] SMASH done (loop ${iloop})."
-  fi
-) &
+    if stage_on smash; then
+      echo "[$(date)] Starting SMASH (loop ${iloop})..."
+      time "${SMASH_BIN}" \
+        -i "${SCENARIO_DIR}/smash_config" \
+        -c "Modi: { List: { File_Directory: '${SAMPLER_OUT}/' } }" \
+        -o "${SMASH_OUT}/" -f \
+        > "${LOG_DIR}/smash_${iloop}.log" 2>&1
+      echo "[$(date)] SMASH done (loop ${iloop})."
+    fi
+  ) &
+  done
+  wait   # all FINALSTATE_PARALLEL tasks of this sequential iteration must finish
+         # before the next sequential iteration starts
 done
 wait
 echo "=== run_chain.sh: all done for PREFIX=${PREFIX} ==="

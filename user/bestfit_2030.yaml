@@ -5,7 +5,8 @@ defaults:
   sampler_base: sampler_config
   smash_base: smash_config.yaml
   stages: [hydro, sampler, smash]
-  loops: 2
+  finalstate_loops:    2  # run 2 sequential batches
+  finalstate_parallel: 2  # each batch has 2 parallel tasks -> 4 output sub-dirs total
 
 scenarios:
   - name: 62_2030_xih08_alpha075_beta01_etaparam4

@@ -129,11 +129,13 @@ def setup_scenario(name: str, cfg: dict, defaults: dict, timestamp: str):
                  cfg.get("smash",   {}),
                  scenario_dir / "smash_config")
 
-    stages = cfg.get("stages", defaults.get("stages", ["hydro", "sampler", "smash"]))
-    loops  = cfg.get("loops",  defaults.get("loops",  2))
+    stages              = cfg.get("stages", defaults.get("stages", ["hydro", "sampler", "smash"]))
+    finalstate_loops    = cfg.get("finalstate_loops",    defaults.get("finalstate_loops",    1))
+    finalstate_parallel = cfg.get("finalstate_parallel", defaults.get("finalstate_parallel", 2))
     settings = (
         f"STAGES=\"{' '.join(stages)}\"\n"
-        f"LOOPS={loops}\n"
+        f"FINALSTATE_LOOPS={finalstate_loops}\n"
+        f"FINALSTATE_PARALLEL={finalstate_parallel}\n"
     )
     (scenario_dir / "run_settings").write_text(settings)
 
