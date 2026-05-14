@@ -9,7 +9,7 @@ echo "Wrote framework.env with FRAMEWORK_ROOT=${BASEDIR}"
 # get vHLLE
 git clone https://github.com/cwerthmann/vhlle.git
 cd vhlle/
-git checkout common_freezeout_dev
+git checkout 2026.01
 make -j4
 cd ../
 
