@@ -20,4 +20,4 @@ Modi:
         # You can alternatively pass the path directly from the command line
         # with the "-c" command:
         # ./smash -i <path to config file> -c 'Modi: { List: { File_Directory: <path to file that is read in> } }
-        Filename: "particle_lists.oscar"
+        Filename: "particle_lists_0"
