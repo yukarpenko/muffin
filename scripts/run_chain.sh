@@ -70,6 +70,8 @@ for iseq in $(seq 1 "${FINALSTATE_LOOPS}"); do
   echo "[$(date)] Sequential iteration ${iseq}/${FINALSTATE_LOOPS}, launching ${FINALSTATE_PARALLEL} parallel tasks..."
   for ipar in $(seq 1 "${FINALSTATE_PARALLEL}"); do
   (
+    set +e  # do not inherit set -e; handle errors explicitly below
+
     iloop=$(( (iseq - 1) * FINALSTATE_PARALLEL + ipar ))
     SAMPLER_OUT="${SCENARIO_DIR}/sampler.output/${iloop}"
     SMASH_OUT="${SCENARIO_DIR}/smash.output/${iloop}"
@@ -81,6 +83,11 @@ for iseq in $(seq 1 "${FINALSTATE_LOOPS}"); do
         --surface "${SCENARIO_DIR}/hydro.output/f.all.dat" \
         --output  "${SAMPLER_OUT}" \
         > "${LOG_DIR}/sampler_${iloop}.log" 2>&1
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        echo "[$(date)] ERROR: sampler failed (loop ${iloop}, rc=${rc})" >&2
+        exit $rc
+      fi
       python3 "${FRAMEWORK_ROOT}/scripts/add_spectators.py" \
         --sampled_particle_list "${SAMPLER_OUT}/particle_lists.oscar" \
         --spectator_list        "${SCENARIO_DIR}/hydro.output/spectators.dat" \
@@ -95,12 +102,17 @@ for iseq in $(seq 1 "${FINALSTATE_LOOPS}"); do
         -c "Modi: { List: { File_Directory: '${SAMPLER_OUT}/' } }" \
         -o "${SMASH_OUT}/" -f \
         > "${LOG_DIR}/smash_${iloop}.log" 2>&1
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        echo "[$(date)] ERROR: SMASH failed (loop ${iloop}, rc=${rc})" >&2
+        exit $rc
+      fi
       echo "[$(date)] SMASH done (loop ${iloop})."
     fi
+#  ) < /dev/null &   # ← /dev/null prevents stdin inheritance; set +e above prevents silent kills
   ) &
   done
-  wait   # all FINALSTATE_PARALLEL tasks of this sequential iteration must finish
-         # before the next sequential iteration starts
+  wait   # all FINALSTATE_PARALLEL tasks must finish before next sequential iteration
 done
 wait
 echo "=== run_chain.sh: all done for PREFIX=${PREFIX} ==="
