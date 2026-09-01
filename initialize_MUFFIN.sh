@@ -26,7 +26,7 @@ ln -s ../vhlle_params/tables tables
 cd ..
 
 # install pythia
-wget https://pythia.org/download/pythia83/pythia8316.tgz
+wget https://pythia.org/releases/pythia83/pythia8316.tgz
 tar xf pythia8316.tgz && rm pythia8316.tgz
 cd pythia8316/
 ./configure --cxx-common='-std=c++17 -O3 -fPIC -pthread'
