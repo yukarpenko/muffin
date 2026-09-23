@@ -22,9 +22,10 @@ gammaFactor   0.75
 exclVolume    0.0
 
 etaS      0.0
-zetaS     0.0
+zetaS     0.148
 etaSparam  4
-zetaSparam  0
+zetaSparam  4
+
 e_crit    0.5
 
 nx        121

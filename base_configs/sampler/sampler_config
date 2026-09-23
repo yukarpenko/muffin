@@ -1,3 +1,4 @@
 number_of_events  4000
 shear             1
+bulk              1
 ecrit             0.5

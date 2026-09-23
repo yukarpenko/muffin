@@ -9,7 +9,7 @@ echo "Wrote framework.env with FRAMEWORK_ROOT=${BASEDIR}"
 # get vHLLE
 git clone https://github.com/cwerthmann/vhlle.git
 cd vhlle/
-git checkout 2026.08
+git checkout common_freezeout_dev
 make -j4
 cd ../
 
@@ -40,24 +40,25 @@ tar -xf eigen-3.3.9.tar.gz && rm eigen-3.3.9.tar.gz
 # install SMASH
 git clone https://github.com/smash-transport/smash.git
 cd smash/
-# checkout to version SMASH 3.3
-git checkout SMASH-3.3
+# checkout to version SMASH 3.4
+git checkout SMASH-3.4
 mkdir build
 cd build/
-cmake .. -DCMAKE_PREFIX_PATH=$BASEDIR/eigen-3.3.9/ -DPythia_CONFIG_EXECUTABLE=$BASEDIR/pythia8316/bin/pythia8-config
+cmake .. -DCMAKE_PREFIX_PATH=$BASEDIR/eigen-3.3.9/ -DPythia_CONFIG_EXECUTABLE=$BASEDIR/pythia8316/bin/pythia8-config -DCMAKE_INSTALL_PREFIX=$BASEDIR/smash-install
 make -j4
+make install
 cd ../../
 
 # install smash-hadron-sampler
 git clone https://github.com/smash-transport/smash-hadron-sampler.git
 cd smash-hadron-sampler/
-#git checkout SMASH-hadron-sampler-3.0
-git checkout SMASH-hadron-sampler-3.3
+# checkout SMASH-hadron-sampler dev branch commit (Sept 2026) which implements bulk viscous corrections
+git checkout 66593de
 export SMASH_DIR=$BASEDIR/smash
 cp -r $SMASH_DIR/cmake ./
 mkdir build
 cd build/
-cmake .. -DCMAKE_PREFIX_PATH=$BASEDIR/eigen-3.3.9/ -DPythia_CONFIG_EXECUTABLE=$BASEDIR/pythia8316/bin/pythia8-config
+cmake .. -DCMAKE_PREFIX_PATH="$BASEDIR/smash-install/;$BASEDIR/eigen-3.3.9" -DPythia_CONFIG_EXECUTABLE=$BASEDIR/pythia8316/bin/pythia8-config
 make
 cd ../../
 
